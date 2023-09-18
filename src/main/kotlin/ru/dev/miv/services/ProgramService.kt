@@ -1,14 +1,36 @@
 package ru.dev.miv.services
 
+import io.ktor.http.content.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import ru.dev.miv.models.Blank
 import ru.dev.miv.models.Part
 import ru.dev.miv.models.Program
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.*
 
 class ProgramService {
     fun parsing(html: String): Program = parseHtml(html)
+
+
+    fun uploadFile(data: PartData.FileItem) {
+        val filename = data.originalFileName as String
+        val newFilename = "${UUID.randomUUID()}-$filename"
+        Files.createDirectories(Paths.get("uploads/files"))
+
+        data.streamProvider().readBytes().also {
+            File("uploads/files/$newFilename").writeBytes(it)
+        }
+
+        Result.success(Unit)
+
+
+    }
+
+
 }
 
 fun parseHtml(html: String): Program {
@@ -58,7 +80,7 @@ fun parseHtml(html: String): Program {
         }
         count
     } ?: -1
-    return  Program(
+    return Program(
         programId = groups?.get(1)?.value ?: "Undefined",
         name = groups?.get(2)?.value ?: "Undefined",
         programName = dict["nc-program_name"] ?: "Undefined",
