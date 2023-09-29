@@ -1,24 +1,32 @@
 services:
-  web:
+  ktor:
     build: .
-
+    container_name: ktor
+    user: root
     volumes:
-      - /uploads/files
+      - ktor-media:/data/files
+    platform: linux/amd64
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
+#    environment:
 
   db:
     image: postgres
-    volumes:
-      - ./tmp/db:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ktorjournal
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: program_cloud_db
+      POSTGRES_USER: ktor
+      POSTGRES_PASSWORD: GqNvKyF8
+    container_name: db
     ports:
       - "54333:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 1s
+volumes:
+  ktor-media: {}
+  pg-data: {}
