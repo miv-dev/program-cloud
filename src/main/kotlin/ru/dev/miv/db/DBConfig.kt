@@ -2,6 +2,7 @@ package ru.dev.miv.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 
 object DBConfig {
@@ -20,6 +21,11 @@ object DBConfig {
             config.username = credentials.username
             config.password = credentials.password
         }
+        val flyway = Flyway
+            .configure()
+            .dataSource(credentials.url, credentials.username, credentials.password)
+            .load()
+        flyway.migrate()
         Database.connect(HikariDataSource(config))
     }
 

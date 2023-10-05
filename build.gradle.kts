@@ -8,6 +8,8 @@ plugins {
     kotlin("jvm") version "1.9.10"
     id("io.ktor.plugin") version "2.3.4"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
+    id( "org.flywaydb.flyway") version "8.5.4"
+
 }
 
 group = "ru.dev.miv"
@@ -19,12 +21,21 @@ application {
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
+flyway{
+    url = "jdbc:postgresql://localhost:5432/postgres"
+    user = "postgres"
+    password = "postgres"
+    baselineOnMigrate = true
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+
+    implementation("org.flywaydb:flyway-core:6.5.2")
+
 
     implementation("org.jsoup:jsoup:1.15.3")
 
