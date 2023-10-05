@@ -1,18 +1,17 @@
 package ru.dev.miv.db.entities
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import ru.dev.miv.db.tables.FileTable
-import ru.dev.miv.db.tables.ProgramFilesTable
 import ru.dev.miv.db.tables.ProgramTable
 import ru.dev.miv.models.Blank
-import java.time.LocalDateTime
-import java.util.UUID
+import ru.dev.miv.serializers.UUIDSerializer
+import java.util.*
 
-class ProgramEntity(uuid: EntityID<UUID>): Entity<UUID>(uuid) {
-    companion object: EntityClass<UUID, ProgramEntity>(ProgramTable)
+class ProgramEntity(uuid: EntityID<UUID>) : Entity<UUID>(uuid) {
+    companion object : EntityClass<UUID, ProgramEntity>(ProgramTable)
 
     var programId by ProgramTable.programId
     var name by ProgramTable.name
@@ -25,16 +24,32 @@ class ProgramEntity(uuid: EntityID<UUID>): Entity<UUID>(uuid) {
         programId,
         name,
         Json.decodeFromString(blank),
-        machiningTime
+        machiningTime,
+        files.toModel()
     )
 }
 
 
+@Serializable
 data class ProgramModel(
-    val uuid:UUID,
+    @Serializable(with = UUIDSerializer::class)
+    val uuid: UUID,
     val programId: String,
     val name: String,
     val blank: Blank,
     val machiningTime: Int,
+    val files: ProgramFilesModel
 )
 
+@Serializable
+data class ProgramFilesModel(
+    val lst: FileModel?,
+    val tmt: FileModel?,
+    val preview: FileModel?,
+)
+
+@Serializable
+data class FileModel(
+    val path: String,
+    val lastUpdate: String
+)

@@ -17,6 +17,11 @@ fun Route.programRouting() {
             call.respond(program)
         }
 
+        get {
+            val programs = service.programs()
+            call.respond(programs)
+        }
+
         post("/upload") {
             val multipart = call.receiveMultipart()
             runCatching {

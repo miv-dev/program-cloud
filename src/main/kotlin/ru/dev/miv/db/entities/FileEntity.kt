@@ -6,11 +6,15 @@ import org.jetbrains.exposed.dao.id.EntityID
 import ru.dev.miv.db.tables.FileTable
 
 class FileEntity(id: EntityID<Int>) : Entity<Int>(id) {
+    fun toModel() = FileModel(
+        path,
+        lastUpdate.toString()
+    )
 
     companion object : EntityClass<Int, FileEntity>(FileTable)
 
     var path by FileTable.path
-    val lastUpdate by FileTable.path
+    val lastUpdate by FileTable.lastUpdate
 
 
 }

@@ -28,7 +28,7 @@ class ProgramService {
     fun parsing(html: String): ProgramParsed = parseHtml(html)
 
 
-    fun uploadFile(data: PartData, path: String, filename: String) {
+    private fun uploadFile(data: PartData, path: String, filename: String) {
         if (data is PartData.FileItem) {
             Files.createDirectories(Paths.get(path))
             data.streamProvider().readBytes().also {
@@ -37,6 +37,9 @@ class ProgramService {
         } else throw RuntimeException("Not Valid Data")
     }
 
+    suspend fun programs(): List<ProgramModel> = newSuspendedTransaction {
+        ProgramEntity.all().map { it.toModel() }
+    }
 
 
     suspend fun addProgram(data: MultiPartData): UploadResponse {

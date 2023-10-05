@@ -7,6 +7,12 @@ import ru.dev.miv.db.tables.ProgramFilesTable
 import java.util.*
 
 class ProgramFilesEntity(uuid: EntityID<UUID>): Entity<UUID>(uuid) {
+    fun toModel(): ProgramFilesModel = ProgramFilesModel(
+        lstFile?.toModel(),
+        tmtFile?.toModel(),
+        previewFile?.toModel()
+    )
+
     companion object: EntityClass<UUID, ProgramFilesEntity>(ProgramFilesTable)
 
     var lstFile by FileEntity optionalReferencedOn  ProgramFilesTable.lstFile
