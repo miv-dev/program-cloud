@@ -1,39 +1,131 @@
 package ru.dev.miv.services
 
 import io.ktor.http.content.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
+import ru.dev.miv.db.entities.FileEntity
+import ru.dev.miv.db.entities.ProgramEntity
+import ru.dev.miv.db.entities.ProgramFilesEntity
+import ru.dev.miv.db.entities.ProgramModel
 import ru.dev.miv.models.Blank
 import ru.dev.miv.models.Part
-import ru.dev.miv.models.Program
+import ru.dev.miv.models.ProgramParsed
+import ru.dev.miv.response_models.UploadResponse
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import kotlin.collections.set
+
+
+const val filesPath = "data/files"
 
 class ProgramService {
-    fun parsing(html: String): Program = parseHtml(html)
+    fun parsing(html: String): ProgramParsed = parseHtml(html)
 
 
-    fun uploadFile(data: PartData.FileItem) {
-        val filename = data.originalFileName as String
-        val newFilename = "${UUID.randomUUID()}-$filename"
-        Files.createDirectories(Paths.get("uploads/files"))
-
-        data.streamProvider().readBytes().also {
-            File("uploads/files/$newFilename").writeBytes(it)
-        }
-
-        Result.success(Unit)
-
-
+    fun uploadFile(data: PartData, path: String, filename: String) {
+        if (data is PartData.FileItem) {
+            Files.createDirectories(Paths.get(path))
+            data.streamProvider().readBytes().also {
+                File("$path/$filename").writeBytes(it)
+            }
+        } else throw RuntimeException("Not Valid Data")
     }
 
 
+
+    suspend fun addProgram(data: MultiPartData): UploadResponse {
+        val uploadedFiles = mutableMapOf<String, FileEntity>()
+        val errorList = mutableListOf<String>()
+        val uuid =
+            data.readAllParts().associateBy { it.name }.takeIf { it.keys.containsAll(REQUIRED_PART_DATA) }?.let { map ->
+                val id = UUID.randomUUID()
+                val path = "$filesPath/programs/$id"
+
+                val program = map["program"]?.let {
+                    if (it is PartData.FormItem) {
+                        return@let Json.decodeFromString<ProgramParsed>(it.value)
+                    } else {
+                        throw RuntimeException("Program info is not valid")
+                    }
+                } ?: throw RuntimeException("Program didn't pass")
+
+
+                map.forEach { (key, value) ->
+                    key?.let {
+                        try {
+                            when (key) {
+                                "tmt" -> TMT_FILENAME
+
+                                "preview" -> PREVIEW_FILENAME
+
+                                "lst" -> LST_FILENAME
+
+                                else -> null
+                            }?.let { filename ->
+                                uploadFile(
+                                    value, path, filename
+                                )
+                                newSuspendedTransaction {
+                                    uploadedFiles[key] = FileEntity.new {
+                                        this.path = "$id/$filename"
+                                    }
+
+                                }
+
+                            }
+                        } catch (e: RuntimeException) {
+
+                            errorList.add(key)
+
+                        }
+                    }
+
+                }
+
+                newSuspendedTransaction {
+                    val files = ProgramFilesEntity.new {
+                        lstFile = uploadedFiles["lst"]
+                        previewFile = uploadedFiles["preview"]
+                        tmtFile = uploadedFiles["tmt"]
+
+                    }
+
+                    ProgramEntity.new(id) {
+                        this.programId = program.programId
+                        this.name = program.name
+                        this.machiningTime = program.machiningTime
+                        this.blank = Json.encodeToString(program.blank)
+                        this.files = files
+                    }
+                }
+
+                id
+
+            } ?: throw RuntimeException("Not all data passed")
+
+        return UploadResponse(
+            programId = uuid, uploadedFiles.keys.toList(), errorList
+        )
+    }
+
+    companion object {
+
+        const val TMT_FILENAME = "tmt.TMT"
+        const val PREVIEW_FILENAME = "preview.BMP"
+        const val LST_FILENAME = "lst.LST"
+
+
+        val REQUIRED_PART_DATA = listOf("program", "lst", "preview", "tmt")
+    }
 }
 
-fun parseHtml(html: String): Program {
+fun parseHtml(html: String): ProgramParsed {
     val doc = Jsoup.parse(html)
     val tables = doc.getElementsByTag("tbody")
 
@@ -62,9 +154,7 @@ fun parseHtml(html: String): Program {
         val values = it.split(" x ")
 
         Blank(
-            values[0].toDouble(),
-            values[1].toDouble(),
-            values[2].toDouble()
+            values[0].toDouble(), values[1].toDouble(), values[2].toDouble()
         )
     } ?: Blank(
         -1.0,
@@ -80,7 +170,7 @@ fun parseHtml(html: String): Program {
         }
         count
     } ?: -1
-    return Program(
+    return ProgramParsed(
         programId = groups?.get(1)?.value ?: "Undefined",
         name = groups?.get(2)?.value ?: "Undefined",
         programName = dict["nc-program_name"] ?: "Undefined",
@@ -95,27 +185,21 @@ fun parseHtml(html: String): Program {
 fun parseTools(elements: Elements): List<String> {
     val tools = mutableListOf<Map<String, String>>()
 
-    elements.filter { item -> item.childrenSize() > 1 }
-        .also { list ->
-            val keys = mutableListOf<String>()
-            list[0].getElementsByTag("b")
-                .forEach {
-                    keys.add(it.text().lowercase().replace(" ", "_"))
-                }
-
-            list
-                .slice(1 until list.size)
-                .forEach {
-                    val tool = mutableMapOf<String, String>()
-                    it
-                        .getElementsByTag("font")
-                        .forEachIndexed { index, element ->
-                            tool[keys[index]] = element.text()
-                        }
-                    tools.add(tool)
-                }
-
+    elements.filter { item -> item.childrenSize() > 1 }.also { list ->
+        val keys = mutableListOf<String>()
+        list[0].getElementsByTag("b").forEach {
+            keys.add(it.text().lowercase().replace(" ", "_"))
         }
+
+        list.slice(1 until list.size).forEach {
+            val tool = mutableMapOf<String, String>()
+            it.getElementsByTag("font").forEachIndexed { index, element ->
+                tool[keys[index]] = element.text()
+            }
+            tools.add(tool)
+        }
+
+    }
     return tools.map { it["remark"] ?: "Undefined" }
 }
 
@@ -149,10 +233,7 @@ fun parsePart(elements: List<Element>): Part {
         dict[key.lowercase().removeSuffix(":").replace(" ", "_")] = value
     }
     val dimensions: Blank = dict["dimensions"]?.let {
-        val sizes = it
-            .removeSuffix("mm")
-            .trim()
-            .split(" x ")
+        val sizes = it.removeSuffix("mm").trim().split(" x ")
         Blank(
             sizes[0].toDouble(),
             sizes[1].toDouble(),

@@ -1,7 +1,6 @@
 package ru.dev.miv.routing
 
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -20,12 +19,15 @@ fun Route.programRouting() {
 
         post("/upload") {
             val multipart = call.receiveMultipart()
-            multipart.forEachPart { part ->
-                if (part is PartData.FileItem) {
-                    service.uploadFile(part)
-                }
+            runCatching {
+                service.addProgram(multipart)
+            }.onSuccess {
+                call.respond(HttpStatusCode.OK, it)
+            }.onFailure {
+                call.respond(HttpStatusCode.BadRequest, hashMapOf("error" to it.localizedMessage ))
             }
-            call.respond(HttpStatusCode.OK)
+
+
         }
     }
 }
