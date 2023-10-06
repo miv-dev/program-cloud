@@ -25,7 +25,5 @@ data class Blank(
 data class Part(
     val number: Int,
     val dimensions: Blank,
-    val surface: Double,
     val geoFilename: String,
-    val weight: Double,
 )

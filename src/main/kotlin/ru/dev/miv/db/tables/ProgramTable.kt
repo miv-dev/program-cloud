@@ -7,5 +7,6 @@ object ProgramTable : UUIDTable(name = "programs") {
     val name = varchar("name", length = 256)
     val blank = varchar("blank", length = 256)
     val machiningTime = integer("machining_time")
+    val tools = varchar("tools", length = 512)
     val files = reference("files", ProgramFilesTable)
 }

@@ -3,14 +3,12 @@ package ru.dev.miv.services
 import io.ktor.http.content.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import ru.dev.miv.db.entities.FileEntity
-import ru.dev.miv.db.entities.ProgramEntity
-import ru.dev.miv.db.entities.ProgramFilesEntity
-import ru.dev.miv.db.entities.ProgramModel
+import ru.dev.miv.db.entities.*
 import ru.dev.miv.models.Blank
 import ru.dev.miv.models.Part
 import ru.dev.miv.models.ProgramParsed
@@ -99,13 +97,26 @@ class ProgramService {
 
                     }
 
+                    val partEntityList = program.parts.map {
+                        PartEntity.new {
+                            this.dimensions = Json.encodeToString(it.dimensions)
+                            this.quantity = it.number
+                            this.geoFilename = it.geoFilename
+                        }
+                    }
+
+
                     ProgramEntity.new(id) {
                         this.programId = program.programId
                         this.name = program.name
                         this.machiningTime = program.machiningTime
                         this.blank = Json.encodeToString(program.blank)
                         this.files = files
+                        this.tools = Json.encodeToString(program.tools)
+                        this.parts = SizedCollection(partEntityList)
                     }
+
+
                 }
 
                 id
@@ -247,8 +258,6 @@ fun parsePart(elements: List<Element>): Part {
     return Part(
         number = dict["part_number"]?.toInt() ?: -1,
         dimensions = dimensions,
-        surface = dict["surface"]?.removeSuffix("mm2")?.toDouble() ?: -1.0,
         geoFilename = dict["geofile_name"] ?: "Undefined",
-        weight = dict["weight"]?.removeSuffix("kg")?.toDouble() ?: -1.0
     )
 }
