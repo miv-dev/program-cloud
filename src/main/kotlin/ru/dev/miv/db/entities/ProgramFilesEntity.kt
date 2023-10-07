@@ -4,10 +4,11 @@ import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import ru.dev.miv.db.tables.ProgramFilesTable
+import ru.dev.miv.models.ProgramFilesModel
 import java.util.*
 
 class ProgramFilesEntity(uuid: EntityID<UUID>): Entity<UUID>(uuid) {
-    fun toModel(): ProgramFilesModel = ProgramFilesModel(
+    fun toModel() = ProgramFilesModel(
         lstFile?.toModel(),
         tmtFile?.toModel(),
         previewFile?.toModel()

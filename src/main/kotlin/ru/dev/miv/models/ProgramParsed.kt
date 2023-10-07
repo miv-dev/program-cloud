@@ -14,16 +14,4 @@ data class ProgramParsed(
     val parts: List<Part> = emptyList(),
 )
 
-@Serializable
-data class Blank(
-    val width: Double,
-    val length: Double,
-    val height: Double = 0.0,
-)
 
-@Serializable
-data class Part(
-    val number: Int,
-    val dimensions: Blank,
-    val geoFilename: String,
-)
