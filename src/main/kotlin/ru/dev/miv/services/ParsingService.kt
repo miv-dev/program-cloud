@@ -3,13 +3,16 @@ package ru.dev.miv.services
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import ru.dev.miv.models.Blank
-import ru.dev.miv.models.Part
-import ru.dev.miv.models.ProgramParsed
+import ru.dev.miv.models.*
+import java.io.File
+import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.pathString
 
 class ParsingService {
 
-    fun parseHtml(html: String): ProgramParsed {
+    fun parseHtml(html: String): ProgramModel {
         val doc = Jsoup.parse(html)
         val tables = doc.getElementsByTag("tbody")
 
@@ -37,10 +40,10 @@ class ParsingService {
         val blank = dict["blank"]?.removeSuffix("mm")?.let {
             val values = it.split(" x ")
 
-            Blank(
+            BlankModel(
                 values[0].toDouble(), values[1].toDouble(), values[2].toDouble()
             )
-        } ?: Blank(
+        } ?: BlankModel(
             DOUBLE_UNDEFINED,
             DOUBLE_UNDEFINED,
             DOUBLE_UNDEFINED,
@@ -55,15 +58,31 @@ class ParsingService {
             count
         } ?: INT_UNDEFINED
 
-        return ProgramParsed(
+
+        val files = dict["nc-program_name"]?.let {
+            val lst = it
+            val filename = lst.split("\\").last()
+            val path = lst.removeSuffix(filename)
+            val tmt = "$path${filename.replace("LST", "TMT")}"
+
+            ProgramFilesModel(
+                lst = FileModel(url = lst),
+                tmt = FileModel(url = tmt),
+                preview = FileModel(url = "$path$preview"),
+            )
+        }
+
+
+
+        return ProgramModel(
+            uuid = UUID.randomUUID(),
             programId = groups?.get(1)?.value ?: STRING_UNDEFINED,
             name = groups?.get(2)?.value ?: STRING_UNDEFINED,
-            programName = dict["nc-program_name"] ?: STRING_UNDEFINED,
             blank = blank,
             machiningTime = time,
-            preview = preview,
             tools = tools,
-            parts = parts
+            parts = parts,
+            files = files
         )
     }
 
@@ -88,7 +107,7 @@ class ParsingService {
         return tools.map { it["remark"] ?: STRING_UNDEFINED }
     }
 
-    private fun parseParts(elements: Elements): List<Part> {
+    private fun parseParts(elements: Elements): List<PartModel> {
         val parts = mutableListOf<List<Element>>()
 
         elements.filter { field ->
@@ -102,7 +121,7 @@ class ParsingService {
         return parts.map { parsePart(it) }
     }
 
-    private fun parsePart(elements: List<Element>): Part {
+    private fun parsePart(elements: List<Element>): PartModel {
         val dict = mutableMapOf<String, String>()
         elements[0].also {
             val img = it.getElementsByTag("img")
@@ -117,19 +136,19 @@ class ParsingService {
 
             dict[key.lowercase().removeSuffix(":").replace(" ", "_")] = value
         }
-        val dimensions: Blank = dict["dimensions"]?.let {
+        val dimensions: BlankModel = dict["dimensions"]?.let {
             val sizes = it.removeSuffix("mm").trim().split(" x ")
-            Blank(
+            BlankModel(
                 sizes[0].toDouble(),
                 sizes[1].toDouble(),
             )
-        } ?: Blank(DOUBLE_UNDEFINED, DOUBLE_UNDEFINED)
+        } ?: BlankModel(DOUBLE_UNDEFINED, DOUBLE_UNDEFINED)
 
 
-        return Part(
+        return PartModel(
             quantity = dict["part_number"]?.toInt() ?: INT_UNDEFINED,
             dimensions = dimensions,
-            geoFilename = dict["geofile_name"]?.split("//")?.last()?.removeSuffix(".GEO") ?: STRING_UNDEFINED,
+            geoFilename = dict["geofile_name"]?.split("\\")?.last()?.removeSuffix(".GEO") ?: STRING_UNDEFINED,
         )
     }
 

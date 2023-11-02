@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class FileModel(
-    val path: String,
-    val lastUpdate: String
+    val path: String?= null ,
+    val lastUpdate: String?= null,
+    val url: String = "",
 )

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PartModel(
-    val dimensions: Blank,
+    val dimensions: BlankModel,
     val quantity: Int,
     val geoFilename: String,
 )

@@ -6,11 +6,20 @@ import org.jetbrains.exposed.dao.id.EntityID
 import ru.dev.miv.db.tables.FileTable
 import ru.dev.miv.models.FileModel
 
+
 class FileEntity(id: EntityID<Int>) : Entity<Int>(id) {
+    
     fun toModel() = FileModel(
         path,
-        lastUpdate.toString()
+        lastUpdate.toString(),
     )
+
+    fun toModel(staticUrl: String)= FileModel (
+            path,
+            lastUpdate.toString(),
+            url = "$staticUrl/programs/$path"
+        )
+    
 
     companion object : EntityClass<Int, FileEntity>(FileTable)
 

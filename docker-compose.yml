@@ -2,6 +2,7 @@ services:
   ktor:
     build: .
     container_name: ktor
+    image: mivdev/program-cloud-ktor
     user: root
     volumes:
       - ktor-media:/data/files
@@ -11,8 +12,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-#    environment:
-
+    environment:
+      - DB_USERNAME=ktor
+      - DB_PASSWORD=GqNvKyF8
+      - DB_URL=jdbc:postgresql://db:5432/program_cloud_db
+    
   db:
     image: postgres
     environment:

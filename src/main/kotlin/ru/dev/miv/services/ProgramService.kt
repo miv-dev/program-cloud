@@ -9,8 +9,8 @@ import ru.dev.miv.db.entities.FileEntity
 import ru.dev.miv.db.entities.PartEntity
 import ru.dev.miv.db.entities.ProgramEntity
 import ru.dev.miv.db.entities.ProgramFilesEntity
+import ru.dev.miv.db.tables.ProgramTable
 import ru.dev.miv.models.ProgramModel
-import ru.dev.miv.models.ProgramParsed
 import ru.dev.miv.response_models.UploadResponse
 import java.io.File
 import java.nio.file.Files
@@ -18,12 +18,12 @@ import java.nio.file.Paths
 import java.util.*
 import kotlin.collections.set
 
-
+val STATIC_URL = "http://92.255.109.82:8080/static"
 
 class ProgramService(
     private val uploadPath: String = "data/files"
 ) {
-    fun parsing(html: String): ProgramParsed = ParsingService().parseHtml(html)
+    fun parsing(html: String): ProgramModel = ParsingService().parseHtml(html)
 
 
     private fun uploadFile(data: PartData, path: String, filename: String) {
@@ -36,13 +36,20 @@ class ProgramService(
     }
 
     suspend fun programs(): List<ProgramModel> = newSuspendedTransaction {
-        ProgramEntity.all().map { it.toModel() }
+        ProgramEntity.all().map { it.toModel(STATIC_URL) }
     }
+
+    suspend fun findProgram (search: String):List<ProgramModel> = newSuspendedTransaction{
+        ProgramEntity.find{ ProgramTable.name like search }.map{ it.toModel(STATIC_URL) }
+    } 
 
 
     suspend fun addProgram(data: MultiPartData): UploadResponse {
         val uploadedFiles = mutableMapOf<String, FileEntity>()
         val errorList = mutableListOf<String>()
+        val json = Json {
+            ignoreUnknownKeys = true
+        }
         val uuid =
             data.readAllParts().associateBy { it.name }.takeIf { it.keys.containsAll(REQUIRED_PART_DATA) }?.let { map ->
                 val id = UUID.randomUUID()
@@ -50,7 +57,7 @@ class ProgramService(
 
                 val program = map["program"]?.let {
                     if (it is PartData.FormItem) {
-                        return@let Json.decodeFromString<ProgramParsed>(it.value)
+                        return@let json.decodeFromString<ProgramModel>(it.value)
                     } else {
                         throw RuntimeException("Program info is not valid")
                     }

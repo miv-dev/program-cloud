@@ -8,6 +8,8 @@ import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import ru.dev.miv.db.DBConfig
 import ru.dev.miv.routing.programRouting
+import java.io.File
+import io.ktor.server.http.content.*
 
 
 fun main(args: Array<String>) {
@@ -33,6 +35,7 @@ fun Application.module() {
 
 
     routing {
+        staticFiles("/static", File("data/files"))
         programRouting()
     }
 }

@@ -10,9 +10,9 @@ data class ProgramModel(
     val uuid: UUID,
     val programId: String,
     val name: String,
-    val blank: Blank,
+    val blank: BlankModel,
     val machiningTime: Int,
-    val files: ProgramFilesModel,
+    val files: ProgramFilesModel?,
     val tools: List<String>,
     val parts: List<PartModel>
 )

@@ -13,6 +13,11 @@ class ProgramFilesEntity(uuid: EntityID<UUID>): Entity<UUID>(uuid) {
         tmtFile?.toModel(),
         previewFile?.toModel()
     )
+    fun toModel(staticUrl: String) = ProgramFilesModel(
+        lstFile?.toModel(staticUrl),
+        tmtFile?.toModel(staticUrl),
+        previewFile?.toModel(staticUrl)
+    )
 
     companion object: EntityClass<UUID, ProgramFilesEntity>(ProgramFilesTable)
 

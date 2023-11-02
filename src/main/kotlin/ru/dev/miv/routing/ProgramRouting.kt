@@ -7,9 +7,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import ru.dev.miv.services.ProgramService
 
+
 fun Route.programRouting() {
     val service = ProgramService()
     route("/programs") {
+        
+
         post("/parsing") {
             val html = call.receiveText()
             val program = service.parsing(html)
@@ -17,8 +20,14 @@ fun Route.programRouting() {
             call.respond(program)
         }
 
-        get {
-            val programs = service.programs()
+        post {
+            val searchText = call.receiveText()
+            val programs = if(searchText == ""){
+                service.programs()
+            }else{
+                service.findProgram(searchText)
+            }
+
             call.respond(programs)
         }
 
