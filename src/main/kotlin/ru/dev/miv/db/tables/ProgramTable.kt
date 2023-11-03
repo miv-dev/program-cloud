@@ -9,4 +9,5 @@ object ProgramTable : UUIDTable(name = "programs") {
     val machiningTime = integer("machining_time")
     val tools = varchar("tools", length = 512)
     val files = reference("files", ProgramFilesTable)
+    val comment = varchar("comment", length = 1024)
 }

@@ -121,6 +121,7 @@ class ProgramService(
                         this.files = files
                         this.tools = Json.encodeToString(program.tools)
                         this.parts = SizedCollection(partEntityList)
+                        this.comment = program.comment
                     }
 
 

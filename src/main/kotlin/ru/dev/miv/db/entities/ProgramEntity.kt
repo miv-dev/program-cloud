@@ -19,27 +19,30 @@ class ProgramEntity(uuid: EntityID<UUID>) : Entity<UUID>(uuid) {
     var files by ProgramFilesEntity referencedOn ProgramTable.files
     var tools by ProgramTable.tools
     var parts by PartEntity via ProgramPartTable
+    var comment by ProgramTable.comment
 
     fun toModel() = ProgramModel(
-        id.value,
-        programId,
-        name,
-        Json.decodeFromString(blank),
-        machiningTime,
-        files.toModel(),
+        uuid = id.value,
+        programId = programId,
+        name = name,
+        blank = Json.decodeFromString(blank),
+        machiningTime = machiningTime,
+        files = files.toModel(),
         tools = Json.decodeFromString(tools),
-        parts = parts.map { it.toModel() }
+        parts = parts.map { it.toModel() },
+        comment = comment
     )
 
     fun toModel(staticUrl: String) = ProgramModel(
-        id.value,
-        programId,
-        name,
-        Json.decodeFromString(blank),
-        machiningTime,
-        files.toModel(staticUrl),
+        uuid = id.value,
+        programId = programId,
+        name = name,
+        blank = Json.decodeFromString(blank),
+        machiningTime = machiningTime,
+        files = files.toModel(staticUrl),
         tools = Json.decodeFromString(tools),
-        parts = parts.map { it.toModel() }
+        parts = parts.map { it.toModel() },
+        comment = comment
     )
 
 }

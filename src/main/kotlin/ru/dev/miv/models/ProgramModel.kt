@@ -14,7 +14,8 @@ data class ProgramModel(
     val machiningTime: Int,
     val files: ProgramFilesModel?,
     val tools: List<String>,
-    val parts: List<PartModel>
+    val parts: List<PartModel>,
+    val comment: String = "",
 )
 
 
