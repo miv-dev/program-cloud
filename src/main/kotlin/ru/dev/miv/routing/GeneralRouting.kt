@@ -6,12 +6,11 @@ import ru.dev.miv.services.TokenService
 import ru.dev.miv.services.UserService
 import java.io.File
 
-fun Route.generalRouting(tokenService: TokenService){
-    route("api/"){
-        val userService = UserService()
-        staticFiles("/static", File("data/files"))
-        programRouting()
-        userRouting(userService)
-        authRouting(userService, tokenService)
-    }
+fun Route.generalRouting(tokenService: TokenService) {
+    val userService = UserService()
+    staticFiles("/static", File("data/files"))
+    programRouting()
+    userRouting(userService)
+    authRouting(userService, tokenService)
+
 }
