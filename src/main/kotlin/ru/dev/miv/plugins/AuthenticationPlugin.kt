@@ -25,7 +25,7 @@ fun Application.authenticationPlugin(routing: Route.(tokenService: TokenService)
             verifier {
                 tokenService.makeJWTVerifier()
             }
-            challenge { _, _ ->
+            challenge { defaultScheme, realm ->
                 call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")
             }
             validate { token ->
