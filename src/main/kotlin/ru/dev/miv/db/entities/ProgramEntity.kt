@@ -22,7 +22,7 @@ class ProgramEntity(uuid: EntityID<UUID>) : Entity<UUID>(uuid) {
     var comment by ProgramTable.comment
 
     fun toModel() = ProgramModel(
-        uuid = id.value,
+        id = id.value,
         programId = programId,
         name = name,
         blank = Json.decodeFromString(blank),
@@ -34,7 +34,7 @@ class ProgramEntity(uuid: EntityID<UUID>) : Entity<UUID>(uuid) {
     )
 
     fun toModel(staticUrl: String) = ProgramModel(
-        uuid = id.value,
+        id = id.value,
         programId = programId,
         name = name,
         blank = Json.decodeFromString(blank),

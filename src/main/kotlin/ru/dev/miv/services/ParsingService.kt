@@ -4,6 +4,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import ru.dev.miv.models.*
+import ru.dev.miv.response_models.ParsingRequest
 import java.io.File
 import java.util.*
 import kotlin.io.path.Path
@@ -12,8 +13,8 @@ import kotlin.io.path.pathString
 
 class ParsingService {
 
-    fun parseHtml(html: String): ProgramModel {
-        val doc = Jsoup.parse(html)
+    fun parseHtml(request: ParsingRequest): ProgramModel {
+        val doc = Jsoup.parse(request.program)
         val tables = doc.getElementsByTag("tbody")
 
         val parts = parseParts(tables[4].children())
@@ -59,11 +60,12 @@ class ParsingService {
         } ?: INT_UNDEFINED
 
 
-        val files = dict["nc-program_name"]?.let {
-            val lst = it
-            val filename = lst.split("\\").last()
-            val path = lst.removeSuffix(filename)
-            val tmt = "$path${filename.replace("LST", "TMT")}"
+        val files = request.path.let {
+            val html = it
+            val filename = html.split("\\").last()
+            val path = html.removeSuffix(filename)
+            val tmt = "$path${filename.replace("HTML", "TMT")}"
+            val lst = "$path${filename.replace("HTML", "LST")}"
 
             ProgramFilesModel(
                 lst = FileModel(url = lst),
@@ -75,7 +77,7 @@ class ParsingService {
 
 
         return ProgramModel(
-            uuid = UUID.randomUUID(),
+            id = UUID.randomUUID(),
             programId = groups?.get(1)?.value ?: STRING_UNDEFINED,
             name = groups?.get(2)?.value ?: STRING_UNDEFINED,
             blank = blank,

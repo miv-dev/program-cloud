@@ -11,6 +11,7 @@ import ru.dev.miv.db.entities.ProgramEntity
 import ru.dev.miv.db.entities.ProgramFilesEntity
 import ru.dev.miv.db.tables.ProgramTable
 import ru.dev.miv.models.ProgramModel
+import ru.dev.miv.response_models.ParsingRequest
 import ru.dev.miv.response_models.UploadResponse
 import java.io.File
 import java.nio.file.Files
@@ -23,7 +24,7 @@ val STATIC_URL = "http://92.255.109.82:8080/static"
 class ProgramService(
     private val uploadPath: String = "data/files"
 ) {
-    fun parsing(html: String): ProgramModel = ParsingService().parseHtml(html)
+    fun parsing(request: ParsingRequest): ProgramModel = ParsingService().parseHtml(request)
 
 
     private fun uploadFile(data: PartData, path: String, filename: String) {

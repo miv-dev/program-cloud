@@ -1,13 +1,13 @@
 package ru.dev.miv.models
 
 import kotlinx.serialization.Serializable
-import ru.dev.miv.serializers.UUIDSerializer
+import ru.dev.miv.utils.serializers.UUIDSerializer
 import java.util.*
 
 @Serializable
 data class ProgramModel(
     @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID,
+    val id: UUID,
     val programId: String,
     val name: String,
     val blank: BlankModel,
