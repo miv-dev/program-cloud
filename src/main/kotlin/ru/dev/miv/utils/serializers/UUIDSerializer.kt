@@ -1,4 +1,4 @@
-package ru.dev.miv.serializers
+package ru.dev.miv.utils.serializers
 
 
 import kotlinx.serialization.KSerializer

@@ -1,8 +1,7 @@
 package ru.dev.miv.response_models
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import ru.dev.miv.serializers.UUIDSerializer
+import ru.dev.miv.utils.serializers.UUIDSerializer
 import java.util.UUID
 
 @Serializable
