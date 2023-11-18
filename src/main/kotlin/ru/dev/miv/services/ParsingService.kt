@@ -77,7 +77,7 @@ class ParsingService {
 
 
         return ProgramModel(
-            uuid = UUID.randomUUID(),
+            id = UUID.randomUUID(),
             programId = groups?.get(1)?.value ?: STRING_UNDEFINED,
             name = groups?.get(2)?.value ?: STRING_UNDEFINED,
             blank = blank,

@@ -46,7 +46,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
     implementation("com.zaxxer:HikariCP:$hikari_version")
 
-
+    implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-host-common-jvm")
     implementation("io.ktor:ktor-server-call-logging-jvm")

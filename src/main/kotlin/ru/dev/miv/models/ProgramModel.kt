@@ -7,7 +7,7 @@ import java.util.*
 @Serializable
 data class ProgramModel(
     @Serializable(with = UUIDSerializer::class)
-    val uuid: UUID,
+    val id: UUID,
     val programId: String,
     val name: String,
     val blank: BlankModel,
